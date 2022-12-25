@@ -74,7 +74,12 @@ async def on_message(message):
         await message.channel.send('\n'.join(lines))
     #ENGINE COMMAND
     if message.content.startswith('wwengines'):
-        await message.channel.send('\n\n'.join(lines))
+      lines = ["Current engines:", "**E1**: gptneox_20B. ``GPT-NeoX-20B`` is the largest publically available English language model with 20 billion parameters. It was trained on the same corpus as GPT-J.", 
+        "**E2**: gptj_6B: ``GPT-J`` is a language model with 6 billion parameters trained on the Pile (825 GB of text data) published by EleutherAI. Its main language is English but it is also fluent in several other languages. It is also trained on several computer languages.",
+        "**E3**: codegen_6B_mono: ``CodeGen-6B-mono`` is a 6 billion parameter model specialized to generate source code. It was mostly trained on Python code.",
+        "**E4**: fairseq_gpt_13B: ``Fairseq GPT 13B`` is an English language model with 13 billion parameters. Its training corpus is less diverse than GPT-J but it has better performance at least on pure English language tasks.",
+        "**E5**: m2m100_1_2B: ``M2M100 1.2B`` is a 1.2 billion parameter language model specialized for translation. It supports multilingual translation between 100 languages."]
+      await message.channel.send('\n\n'.join(lines))
 
     #PING
     if message.content.startswith('ping'):
