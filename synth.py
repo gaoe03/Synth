@@ -14,8 +14,8 @@ textsynth_api_key = private_textsynth_api_key
 textsynth_api_url = "https://api.textsynth.com"
 
 
-def generate_text(input_text, chosen_engine):
-  print("The chosen input was {} and the chosen engine was {}".format(input_text, chosen_engine))
+def generate_text(input_text, chosen_engine, username, server_name):
+  print(f"The chosen input was ''{input_text}'' and the chosen engine was {chosen_engine}. The request was made by {username} in the {server_name} server.")
   endpoint = f"{textsynth_api_url}/v1/engines/{chosen_engine}/completions"
 
   headers = {
@@ -50,37 +50,38 @@ def creditsleft(theapi):
 
 
 timer = 0
-lines = ["Current engines:", "**E1**: gptneox_20B. ``GPT-NeoX-20B`` is the largest publically available English language model with 20 billion parameters. It was trained on the same corpus as GPT-J.", 
-        "**E2**: gptj_6B: ``GPT-J`` is a language model with 6 billion parameters trained on the Pile (825 GB of text data) published by EleutherAI. Its main language is English but it is also fluent in several other languages. It is also trained on several computer languages.",
-        "**E3**: codegen_6B_mono: ``CodeGen-6B-mono`` is a 6 billion parameter model specialized to generate source code. It was mostly trained on Python code.",
-        "**E4**: fairseq_gpt_13B: ``Fairseq GPT 13B`` is an English language model with 13 billion parameters. Its training corpus is less diverse than GPT-J but it has better performance at least on pure English language tasks.",
-        "**E5**: m2m100_1_2B: ``M2M100 1.2B`` is a 1.2 billion parameter language model specialized for translation. It supports multilingual translation between 100 languages."]
-
 
 @bot.event
 async def on_message(message):
     global timer
-    global lines
+
+    server_count = len(bot.guilds)
+    await bot.change_presence(activity=discord.Activity(name=f"wwhelp | In {server_count} servers", type=discord.ActivityType.playing))
     
     #HELP COMMANDS
     if message.content.startswith('wwhelp'):
-        lines = ["Current bot commands:", 
+        helplines = ["Current bot commands:", 
         "Send ``ping`` to find the bot latency", 
         "Send ``gen [text]`` for an AI to complete your text", 
         "Send ``wwengines`` to see the list of engines", 
         "Send ``wwcredits`` to view how many TextSynth credits you have left",
         "Send ``wwhelp`` to see the list of commands again", 
         "\nCreated by Alpha#9999"]
-        await message.channel.send('\n'.join(lines))
+        await message.channel.send('\n'.join(helplines))
     #ENGINE COMMAND
     if message.content.startswith('wwengines'):
-      lines = ["Current engines:", "**E1**: gptneox_20B. ``GPT-NeoX-20B`` is the largest publically available English language model with 20 billion parameters. It was trained on the same corpus as GPT-J.", 
+      enginelines = ["Current engines:", "**E1**: gptneox_20B. ``GPT-NeoX-20B`` is the largest publically available English language model with 20 billion parameters. It was trained on the same corpus as GPT-J.", 
         "**E2**: gptj_6B: ``GPT-J`` is a language model with 6 billion parameters trained on the Pile (825 GB of text data) published by EleutherAI. Its main language is English but it is also fluent in several other languages. It is also trained on several computer languages.",
         "**E3**: codegen_6B_mono: ``CodeGen-6B-mono`` is a 6 billion parameter model specialized to generate source code. It was mostly trained on Python code.",
         "**E4**: fairseq_gpt_13B: ``Fairseq GPT 13B`` is an English language model with 13 billion parameters. Its training corpus is less diverse than GPT-J but it has better performance at least on pure English language tasks.",
         "**E5**: m2m100_1_2B: ``M2M100 1.2B`` is a 1.2 billion parameter language model specialized for translation. It supports multilingual translation between 100 languages."]
-      await message.channel.send('\n\n'.join(lines))
+      await message.channel.send('\n\n'.join(enginelines))
 
+    if message.content.startswith('wwrefresh'):
+     # Set the bot's activity to "Serving X servers"
+      server_count = len(bot.guilds)
+      await bot.change_presence(activity=discord.Activity(name=f"wwhelp | In {server_count} servers", type=discord.ActivityType.playing))
+    
     #PING
     if message.content.startswith('ping'):
         await message.channel.send(f'Pong! Latency: {round(bot.latency * 1000)}ms')
@@ -91,7 +92,10 @@ async def on_message(message):
       await message.channel.send(creditsleft(textsynth_api_key))
 
     if message.content.startswith('gen'):
-      
+
+      username = message.author.name + "#" + message.author.discriminator
+      server_name = message.guild.name
+
       #ENGINE CHECKER
       await message.channel.send("Which Engine? Default is E1. For more info, type ``wwengines``. ")
       # Wait for the user's response with a timeout of 60 seconds
@@ -123,16 +127,13 @@ async def on_message(message):
         if response.content.lower() == "cancel":
           await message.channel.send("``Operation cancelled.``")
           return
-
-
-      
-      
+          
       timer= timer+1
       print("The generate text command was used for the {}{} time!".format(timer, (lambda x: "st" if x == 1 else "nd" if x == 2 else "rd" if x == 3 else "th")(timer % 10)))
       # Extract the text to be generated from the message
       text_to_generate = message.content[len('gen'):].strip()
       # Generate the text using your text generation function
-      generated_text = generate_text(text_to_generate, chosen_engine)
+      generated_text = generate_text(text_to_generate, chosen_engine, username, server_name)
       # Send the generated text back to the channel in 2000 character chunks
       for i in range(0, len(generated_text), 1999):
            await message.channel.send("```" + generated_text[i:i+1800] + "```")
